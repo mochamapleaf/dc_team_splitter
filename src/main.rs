@@ -1,3 +1,4 @@
+use serenity::all::Ready;
 use serenity::prelude::*;
 use serenity::async_trait;
 use serenity::model::gateway::GatewayIntents;
@@ -9,9 +10,10 @@ struct Handler;
 
 #[async_trait]
 impl EventHandler for Handler {
-    fn message(&self, ctx: Context, msg: Message) {
+
+    async fn message(&self, ctx: Context, msg: Message) {
         if msg.content == "!ping" {
-            if let Err(why) = msg.channel_id.say(&ctx.http, "Pong!") {
+            if let Err(why) = msg.channel_id.say(&ctx.http, "Pong!").await {
                 println!("Error sending message: {:?}", why);
             }
         }
@@ -20,8 +22,7 @@ impl EventHandler for Handler {
 #[tokio::main]
 async fn main() {
     let dc_token = std::env::var("DISCORD_TOKEN").expect("Expected a discord token in the environment");
-    let intents = GatewayIntents::GULID_MESSAGES
-        | GatewayIntents::GUILD_MESSAGE_REACTIONS
+    let intents = GatewayIntents::GUILD_MESSAGE_REACTIONS
         | GatewayIntents::DIRECT_MESSAGES
         | GatewayIntents::DIRECT_MESSAGE_REACTIONS
         | GatewayIntents::MESSAGE_CONTENT;
@@ -30,7 +31,8 @@ async fn main() {
         .event_handler(Handler)
         .await
         .expect("Err creating client");
-    println!("Hello, world!");
+
+    println!("Bot is running...");
 
     if let Err(why)= client.start().await {
         println!("Client error: {:?}", why);
