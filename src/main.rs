@@ -1,15 +1,43 @@
-use serenity::all::Ready;
+mod commands;
+
+use serenity::all::{Command, Ready};
 use serenity::prelude::*;
 use serenity::async_trait;
 use serenity::model::gateway::GatewayIntents;
 use serenity::model::channel::Message;
 //use serenity::model::gateway::Ready;
 
+use serenity::model::application::Interaction;
+use serenity::builder::{CreateInteractionResponse, CreateInteractionResponseMessage};
 
 struct Handler;
 
 #[async_trait]
 impl EventHandler for Handler {
+    async fn ready(&self, ctx: Context, ready: Ready){
+        println!("{} is connected!", ready.user.name);
+        let guild_command =
+            Command::create_global_command(&ctx.http, commands::split_team::register())
+                .await;
+        println!("guild_command: {:#?}", guild_command);
+    }
+
+    async fn interaction_create(&self, ctx: Context, interaction: Interaction){
+        if let Interaction::Command(command) = interaction{
+            println!("command: {:#?}", command);
+            let content = match command.data.name.as_str(){
+                "split_team" => commands::split_team::run(&command.data.options()),
+                _ => "Unknown command".to_string(),
+            };
+            let data = CreateInteractionResponseMessage::new().content(content);
+            let builder = CreateInteractionResponse::Message(data);
+            if let Err(why) = command.create_response(&ctx.http, builder).await{
+                println!("Cannot respond to slash command: {:?}", why);
+            }
+
+        }
+        //is it possible to reach here???
+    }
 
     async fn message(&self, ctx: Context, msg: Message) {
         if msg.content == "!ping" {
@@ -22,7 +50,8 @@ impl EventHandler for Handler {
 #[tokio::main]
 async fn main() {
     let dc_token = std::env::var("DISCORD_TOKEN").expect("Expected a discord token in the environment");
-    let intents = GatewayIntents::GUILD_MESSAGE_REACTIONS
+    let intents = GatewayIntents::GUILD_MESSAGES
+        | GatewayIntents::GUILD_MESSAGE_REACTIONS
         | GatewayIntents::DIRECT_MESSAGES
         | GatewayIntents::DIRECT_MESSAGE_REACTIONS
         | GatewayIntents::MESSAGE_CONTENT;
