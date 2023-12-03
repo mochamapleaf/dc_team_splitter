@@ -1,6 +1,7 @@
 mod commands;
 
 use serenity::all::{Command, Ready};
+use serenity::all::Route::Gateway;
 use serenity::prelude::*;
 use serenity::async_trait;
 use serenity::model::gateway::GatewayIntents;
@@ -19,7 +20,11 @@ impl EventHandler for Handler {
         let guild_command =
             Command::create_global_command(&ctx.http, commands::split_team::register())
                 .await;
-        println!("guild_command: {:#?}", guild_command);
+        println!("guild_command: {:?}", guild_command);
+        let guild_command =
+            Command::create_global_command(&ctx.http, commands::split_team_vc::register())
+                .await;
+        println!("guild_command: {:?}", guild_command);
     }
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction){
@@ -27,6 +32,11 @@ impl EventHandler for Handler {
             println!("command: {:#?}", command);
             let content = match command.data.name.as_str(){
                 "split_team" => commands::split_team::run(&command.data.options()),
+                "split_team_vc" => {
+                    let guild_id = command.guild_id.expect("guild_id is None");
+                    let guild = guild_id.to_guild_cached(&ctx.cache).expect("guild is None");
+                    commands::split_team_vc::run(&command.data.options(), guild, &command.user)
+                },
                 _ => "Unknown command".to_string(),
             };
             let data = CreateInteractionResponseMessage::new().content(content);
@@ -51,6 +61,7 @@ impl EventHandler for Handler {
 async fn main() {
     let dc_token = std::env::var("DISCORD_TOKEN").expect("Expected a discord token in the environment");
     let intents = GatewayIntents::GUILD_MESSAGES
+        | GatewayIntents::GUILDS
         | GatewayIntents::GUILD_MESSAGE_REACTIONS
         | GatewayIntents::DIRECT_MESSAGES
         | GatewayIntents::DIRECT_MESSAGE_REACTIONS
