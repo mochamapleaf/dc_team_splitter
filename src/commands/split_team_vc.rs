@@ -63,7 +63,7 @@ pub fn run(options: &[ResolvedOption], guild: GuildRef, user: &User) -> CreateIn
     response_components.push(SelectMenu(
         CreateSelectMenu::new("team_a_channel", CreateSelectMenuKind::Channel{
             channel_types: Some(vec![ChannelType::Voice]),
-            default_channels: Some(vec![cur_channel_id])
+            default_channels: None
     }).placeholder("Team A Channel").min_values(1).max_values(1)));
     //select team B channel, default to next one
     //find the next channel
@@ -73,7 +73,7 @@ pub fn run(options: &[ResolvedOption], guild: GuildRef, user: &User) -> CreateIn
     response_components.push(SelectMenu(
         CreateSelectMenu::new("team_b_channel", CreateSelectMenuKind::Channel{
             channel_types: Some(vec![ChannelType::Voice]),
-            default_channels: Some(vec![next_channel_id.clone()])
+            default_channels: None
         }).placeholder("Team B Channel").min_values(1).max_values(1)));
 
     //operation buttons
