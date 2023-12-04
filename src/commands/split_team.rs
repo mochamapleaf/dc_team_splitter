@@ -1,4 +1,4 @@
-use serenity::all::{ResolvedOption, ResolvedValue, UserId};
+use serenity::all::{CreateInteractionResponseMessage, ResolvedOption, ResolvedValue, UserId};
 use serenity::builder::{CreateCommand, CreateCommandOption};
 use serenity::model::application::CommandOptionType;
 
@@ -7,7 +7,7 @@ use rand::seq::SliceRandom;
 use serenity::prelude::Mentionable;
 
 pub fn register() -> CreateCommand{
-    let mut command = CreateCommand::new("split_team")
+    let command = CreateCommand::new("split_team")
         .description("Split players into 2 teams")
         .add_option(CreateCommandOption::new(CommandOptionType::String,
                                              "user_list",
@@ -16,7 +16,7 @@ pub fn register() -> CreateCommand{
     command
 }
 
-pub fn run(options: &[ResolvedOption]) -> String{
+pub fn run(options: &[ResolvedOption]) -> CreateInteractionResponseMessage{
     let mut user_list:Vec<String> = Vec::new();
     if let Some(ResolvedOption{ value: ResolvedValue::String(user_str), ..}) = options.first(){
         user_str.split("<@").for_each(|sub_str| {
@@ -34,7 +34,7 @@ pub fn run(options: &[ResolvedOption]) -> String{
         if (user_list.len() % 2 == 1) && rng.gen_bool(0.5){  split_point += 1;  }
         let team_a: &[String] = &user_list[0..split_point];
         let team_b: &[String] = &user_list[split_point..];
-        return format!("team A: \n{}\n\nteam B: \n{}\n", team_a.join("\n"), team_b.join("\n")).to_string();
+        return CreateInteractionResponseMessage::new().content(format!("team A: \n{}\n\nteam B: \n{}\n", team_a.join("\n"), team_b.join("\n")).to_string());
     }
-    return format!("user_list: {:?}", user_list).to_string();
+    return CreateInteractionResponseMessage::new().content("Error: empty user_list");
 }
