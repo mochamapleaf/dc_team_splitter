@@ -68,6 +68,7 @@ pub fn run(options: &[ResolvedOption], guild: GuildRef, user: &User) -> CreateIn
     //select team B channel, default to next one
     //find the next channel
     let next_channel_iter = guild.channels.iter();
+    //TODO: sort the channels by name first, then choose the next one //(OR, the one with the least editing distance)
     let next_channel_id = next_channel_iter.filter(|(_, channel)| channel.kind == ChannelType::Voice)
         .cycle().skip_while(|(_, channel) | channel.id != cur_channel_id).skip(1).next().unwrap().0;
     response_components.push(SelectMenu(

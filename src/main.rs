@@ -9,6 +9,8 @@ use serenity::model::gateway::GatewayIntents;
 use serenity::model::channel::Message;
 //use serenity::model::gateway::Ready;
 
+use log::{error, debug, info};
+
 use serenity::model::application::Interaction;
 use serenity::builder::{CreateInteractionResponse, CreateInteractionResponseMessage};
 use serenity::model::Permissions;
@@ -103,14 +105,13 @@ impl EventHandler for Handler {
                         let channel_id_end = message_ref[channel_id_start..].find(">").expect("channel mention should be in message") +channel_id_start;
                         let channel_b_id = ChannelId::from(message_ref[channel_id_start+2..channel_id_end].parse::<u64>().expect("channel id should be u64"));
                         let mut tmp_i = team_b_start_i;
-                            while let Some(user_start_i) = message_ref[tmp_i..].find("<@") {
-                                if let Some(user_end_i) = message_ref[tmp_i + user_start_i..].find(">") {
-                                    let user_id = UserId::from(message_ref[tmp_i + user_start_i + 2..tmp_i + user_start_i+ user_end_i].parse::<u64>().expect("user id should be u64"));
-                                    guild_id.move_member(&ctx.http, user_id, channel_b_id).await.expect("cannot move member");
-                                    tmp_i += user_end_i;
-                                }
+                        while let Some(user_start_i) = message_ref[tmp_i..].find("<@") {
+                            if let Some(user_end_i) = message_ref[tmp_i + user_start_i..].find(">") {
+                                let user_id = UserId::from(message_ref[tmp_i + user_start_i + 2..tmp_i + user_start_i+ user_end_i].parse::<u64>().expect("user id should be u64"));
+                                guild_id.move_member(&ctx.http, user_id, channel_b_id).await.expect("cannot move member");
+                                tmp_i += user_end_i;
                             }
-                        println!("moved all players");
+                        }
                     },
                     "team_a_channel" => {
                         let mut prev_content = component.message.content.clone();
